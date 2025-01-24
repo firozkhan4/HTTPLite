@@ -1,10 +1,7 @@
 #ifndef HTTPLITE_H
 #define HTTPLITE_H
 
-typedef struct{
-
-}HTTPRequest;
-
+#include "../request.c"
 typedef struct{
 
 }HTTPResponse;
@@ -15,7 +12,7 @@ typedef void (*Callback)(HTTPRequest *req, HTTPResponse *res);
 
 typedef struct{
 
-    void (*listen)(unsigned int PORT, Callback callback);
+    void (*httplisten)(unsigned int PORT, Callback callback);
 
 }HTTPLite;
 
