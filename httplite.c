@@ -1,7 +1,9 @@
-#include "include/httplite.h"
 #include "server.c"
 #include <stdio.h>
 #include <stdlib.h>
+#include "include/request.h"
+#include "include/response.h"
+#include "include/httplite.h"
 
 void httplisten(unsigned int PORT, Callback callback) {
   Server *ser = malloc(sizeof(Server));
@@ -10,6 +12,10 @@ void httplisten(unsigned int PORT, Callback callback) {
 }
 
 void hello(HTTPRequest *req, HTTPResponse *res) { printf("Hello world!\n"); }
+
+void handle_client(uint32_t clientfd){
+    close(clientfd);
+}
 
 int main() {
   HTTPLite *http = malloc(sizeof(HTTPLite));

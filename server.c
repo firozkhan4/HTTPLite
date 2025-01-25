@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "include/httplite.h"
 
 typedef struct{
     unsigned int PORT;
@@ -55,16 +56,12 @@ void start_server(unsigned int PORT,Server *server){
         const char* http_accept = 
             "HTTP/1.1 200\r\nDate: Fri, 24 Jan 2025 15:00:00 GMT\r\nContent-Type: text/html\r\nContent-Length: 42\r\nConnection: keep-alive\r\n\r\n<html><body>Hello, World!</body></html>\r\n";
 
+        handle_client(clientfd);
 
-        read(clientfd,buffer,1024);
-        printf("%s\n",buffer);
-        send(clientfd,http_accept,strlen(http_accept),0);
-        
-        close(clientfd);
-        memset(buffer,0,1024);
     }
 
 
     close(server->socketfd);
 }
+
 
