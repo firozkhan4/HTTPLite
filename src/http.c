@@ -2,39 +2,47 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <ctype.h>
+#include "../header/http.h"
 
-char *getMethod(char *buffer) {
-  char *method = strtok(buffer, " ");
-  return method ? strdup(method) : NULL;
+
+char *strtrim(char *str) {
+    char *start = str;
+    char *end = str + strlen(str);
+
+    while (isspace((unsigned char)*start)) {
+        start++;
+    }
+
+    while (end > start && isspace((unsigned char)*--end));
+    
+    *(end + 1) = '\0';
+
+    return start;
 }
 
-char *getURL(char *buffer) {
-  char *url = strtok(NULL, " ");
-  return url ? strdup(url) : NULL;
+static void init_request(Request *req, char *buffer, size_t size){
+  req->method = strtok(buffer, " ");
+  req->url = strtok(NULL, " ");
+
+  while (1) {
+    char *line = strtok(NULL, "\r\n");
+    if (line == NULL || strlen(line) == 0) {
+      break;
+    }
+    if (strstr(line, "Content-Length:") != NULL) {
+      req->body = strtrim(strtok(NULL, ""));
+      char *content_length = strtok(line, " ");
+      printf("%s\n", content_length);
+    }
+  }
 }
 
-struct Request {
-  uint16_t fd;
-  char *method;
-  char *url;
-};
-
-struct Response {
-  uint16_t fd;
-  uint32_t status_code;
-};
-
-typedef struct Request Request;
-typedef struct Response Response;
-
-typedef void (*callback)(Request *, Response *);
 
 void http_sendFile(Response *res, const char *filepath) {
 
@@ -135,6 +143,7 @@ void start_server(uint32_t PORT, callback func) {
     }
     buffer[bytes_read] = '\0';
 
+
     Request *req = malloc(sizeof(Request));
     if (!req) {
       perror("Memory allocation failed");
@@ -142,9 +151,7 @@ void start_server(uint32_t PORT, callback func) {
       continue;
     }
 
-    req->fd = clientfd;
-    req->method = getMethod(buffer);
-    req->url = getURL(buffer);
+    init_request(req,buffer,bytes_read);
 
     Response *res = malloc(sizeof(Response));
     if (!res) {
@@ -160,8 +167,6 @@ void start_server(uint32_t PORT, callback func) {
     func(req, res);
 
     // Cleanup
-    free(req->method);
-    free(req->url);
     free(req);
     free(res);
     close(clientfd);

@@ -1,12 +1,9 @@
 .SILENT:
 
-all: run
+all: build
 
-SRC=.
-BIN=bin/
+build:
+	gcc -o bin/main.c example/main.c src/http.c
 
-http: main.c
-	gcc main.c -o bin/main
-
-run: http
-	bin/main
+run:
+	./bin/main.c
