@@ -7,24 +7,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <ctype.h>
 #include "../header/http.h"
+#include "../header/utils.h"
 
-
-char *strtrim(char *str) {
-    char *start = str;
-    char *end = str + strlen(str);
-
-    while (isspace((unsigned char)*start)) {
-        start++;
-    }
-
-    while (end > start && isspace((unsigned char)*--end));
-    
-    *(end + 1) = '\0';
-
-    return start;
-}
 
 static void init_request(Request *req, char *buffer, size_t size){
   req->method = strtok(buffer, " ");
@@ -82,13 +67,13 @@ void http_sendFile(Response *res, const char *filepath) {
 
 void http_send(Response *res, char *buffer, size_t size) {
 
-  char header[1024];
+  char *header = malloc(1024);
+  memset(header,0,1024);
 
-  snprintf(header, sizeof(header),
+  snprintf(header, (size_t)1024,
            "HTTP/1.1 %u OK\r\n"
            "Content-Type: application/json\r\n"
-           "Content-Length: %ld\r\n"
-           "Connection: alive\r\n\r\n",
+           "Content-Length: %ld\r\n",
            res->status_code ? res->status_code : 200, size);
 
   send(res->fd, header, strlen(header), 0);
